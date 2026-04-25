@@ -1,4 +1,4 @@
-FROM FROM node:14-bullseye as build-deps
+FROM node:14-bullseye as build-deps
 
 RUN apt-get update && apt-get install -y wget
 
