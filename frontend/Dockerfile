@@ -1,21 +1,21 @@
 FROM node:18-bullseye
 WORKDIR /usr/src/app
 
-# Copiamos los archivos de configuracion e instalamos dependencias
+# 1. Le decimos a Docker que atrape la variable de Railway
+ARG REACT_APP_BACKEND_URL
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+
+# 2. Copiamos e instalamos dependencias
 COPY package*.json ./
 RUN npm install
-
-# Por las dudas instalamos express que lo pide el server.js
 RUN npm install express
 
-# Copiamos todo el resto del codigo
+# 3. Copiamos el resto del codigo
 COPY . ./
 
-# Construimos la pagina (Acá lee tu variable REACT_APP_BACKEND_URL de Railway)
+# 4. Construimos la pagina (¡Ahora sí tiene la URL del Backend pegada!)
 RUN npm run build
 
-# Exponemos el puerto que usa server.js
+# 5. Exponemos e iniciamos
 EXPOSE 3333
-
-# Iniciamos el sistema
 CMD ["node", "server.js"]
