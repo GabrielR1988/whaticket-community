@@ -44,4 +44,17 @@ const App = () => {
   );
 };
 
+window.addEventListener("message", (event) => {
+  // Por seguridad, siempre validamos el origen del CRM
+  if (event.origin !== "https://tu-dominio-expocrm.com") return;
+
+  if (event.data && event.data.type === "SET_WHATICKET_TOKEN") {
+    // Guardamos el token que viene del CRM en el localStorage
+    localStorage.setItem("token", JSON.stringify(event.data.token));
+    
+    // Opcional: recargar la ventana para que los hooks de autenticación tomen el nuevo token
+    window.location.reload();
+  }
+});  
+
 export default App;
