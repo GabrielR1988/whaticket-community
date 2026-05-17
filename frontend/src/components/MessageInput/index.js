@@ -233,11 +233,9 @@ const MessageInput = ({ ticketStatus }) => {
   const [signMessage, setSignMessage] = useLocalStorage("signOption", true);
 
   useEffect(() => {
-    inputRef.current.focus();
   }, [replyingMessage]);
 
   useEffect(() => {
-    inputRef.current.focus();
     return () => {
       setInputMessage("");
       setShowEmoji(false);
@@ -597,7 +595,6 @@ const MessageInput = ({ ticketStatus }) => {
           <div className={classes.messageInputWrapper}>
             <InputBase
               inputRef={input => {
-                input && input.focus();
                 input && (inputRef.current = input);
               }}
               className={classes.messageInput}
