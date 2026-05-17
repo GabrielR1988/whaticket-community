@@ -20,5 +20,30 @@
 	<body>
 		<noscript>You need to enable JavaScript to run this app.</noscript>
 		<div id="root"></div>
+
+		<script>
+		  // Monitoreamos de manera global si el usuario hace foco en cualquier elemento para escribir
+		  document.addEventListener('focusin', function(e) {
+		    // Si el elemento es una caja de texto (input, textarea) o se puede escribir en él
+		    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+		      try {
+		        // Le sacamos una foto a la posición actual de la ventana de EspoCRM (la madre)
+		        var parentWin = window.parent;
+		        if (parentWin && parentWin !== window) {
+		          var currentX = parentWin.scrollX;
+		          var currentY = parentWin.scrollY;
+		          
+		          // Al milisegundo de hacer foco, obligamos a la pantalla de afuera a congelarse en su eje X e Y
+		          setTimeout(function() {
+		            parentWin.scrollTo(currentX, currentY);
+		          }, 1);
+		        }
+		      } catch (err) {
+		        // Si hay algún bloqueo menor de dominios, el sistema sigue de largo sin romper nada
+		        console.log("Error congelando scroll:", err);
+		      }
+		    }
+		  }, true);
+		</script>
 	</body>
 </html>
