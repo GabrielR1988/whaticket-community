@@ -384,10 +384,11 @@ const MessagesList = ({ ticketId, isGroup }) => {
   };
 
   const scrollToBottom = () => {
-    if (lastMessageRef.current) {
-      lastMessageRef.current.scrollIntoView({});
+    const container = document.getElementById("messagesList");
+    if (container) {
+        container.scrollTop = container.scrollHeight;
     }
-  };
+};
 
   const handleScroll = (e) => {
     if (!hasMore) return;
