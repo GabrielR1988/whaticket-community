@@ -32,7 +32,9 @@ const models = [
   WhatsappQueue,
   UserQueue,
   QuickAnswer,
-  WppKey
+  WppKey,
+  Tag,
+  TicketTag
 ];
 
 sequelize.addModels(models);
