@@ -1,5 +1,6 @@
 import Tag from "../../models/Tag";
 import AppError from "../../errors/AppError";
+import TicketTag from "../../models/TicketTag";
 
 interface TagData {
   name: string;
@@ -37,13 +38,8 @@ export const SyncTagsService = async (
   ticketId: number,
   tagIds: number[]
 ): Promise<void> => {
-  const Tag = require("../../models/Tag").default;
-  const TicketTag = require("../../models/TicketTag").default;
-
-  // Eliminar todas las tags actuales del ticket
   await TicketTag.destroy({ where: { ticketId } });
 
-  // Insertar las nuevas
   if (tagIds && tagIds.length > 0) {
     const records = tagIds.map(tagId => ({ ticketId, tagId }));
     await TicketTag.bulkCreate(records);
