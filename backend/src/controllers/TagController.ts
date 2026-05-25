@@ -8,6 +8,7 @@ import {
 } from "../services/TagServices/TagServices";
 import Tag from "../models/Tag";
 import TicketTag from "../models/TicketTag";
+import Ticket from "../models/Ticket";
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
   const tags = await ListTagsService();
@@ -42,10 +43,20 @@ export const sync = async (req: Request, res: Response): Promise<Response> => {
 
 export const getByTicket = async (req: Request, res: Response): Promise<Response> => {
   const { ticketId } = req.params;
-  const ticketTags = await TicketTag.findAll({
-    where: { ticketId },
-    include: [{ model: Tag }]
+  
+  const ticket = await Ticket.findByPk(ticketId, {
+    include: [
+      {
+        model: Tag,
+        as: "tags",
+        through: { attributes: [] }
+      }
+    ]
   });
-  const tags = ticketTags.map((tt: any) => tt.Tag);
-  return res.json(tags);
+
+  if (!ticket) {
+    return res.status(404).json({ error: "Ticket not found" });
+  }
+
+  return res.json((ticket as any).tags || []);
 };
