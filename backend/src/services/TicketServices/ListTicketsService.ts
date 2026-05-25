@@ -7,6 +7,8 @@ import Message from "../../models/Message";
 import Queue from "../../models/Queue";
 import ShowUserService from "../UserServices/ShowUserService";
 import Whatsapp from "../../models/Whatsapp";
+import Tag from "../../models/Tag";
+import TicketTag from "../../models/TicketTag";
 
 interface Request {
   searchParam?: string;
@@ -56,7 +58,12 @@ const ListTicketsService = async ({
       model: Whatsapp,
       as: "whatsapp",
       attributes: ["name"]
-    }
+    },
+    {
+      model: Tag,
+      as: "tags",
+      through: { attributes: [] }
+    },
   ];
 
   if (showAll === "true") {
