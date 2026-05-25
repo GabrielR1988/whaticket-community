@@ -77,6 +77,9 @@ class Ticket extends Model<Ticket> {
 
   @HasMany(() => Message)
   messages: Message[];
+  
+  @HasMany(() => TicketTag)
+  ticketTags: TicketTag[];
 
   @BelongsToMany(() => Tag, () => TicketTag)
   tags: Tag[];
