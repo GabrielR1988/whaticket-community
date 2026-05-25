@@ -153,7 +153,7 @@ const reducer = (state, action) => {
 };
 
 	const TicketsList = (props) => {
-		const { status, searchParam, showAll, selectedQueueIds, updateCount, style } =
+		const { status, searchParam, showAll, selectedQueueIds, selectedTagIds, updateCount, style } =
 			props;
 	const classes = useStyles();
 	const [pageNumber, setPageNumber] = useState(1);
@@ -171,6 +171,7 @@ const reducer = (state, action) => {
 		status,
 		showAll,
 		queueIds: JSON.stringify(selectedQueueIds),
+		tagIds: JSON.stringify(selectedTagIds || []),
 	});
 
 	useEffect(() => {
