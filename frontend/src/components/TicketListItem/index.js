@@ -220,7 +220,20 @@ const TicketListItem = ({ ticket }) => {
 								</Typography>
 							)}
 							{ticket.whatsappId && (
-								<div className={classes.userTag} title={i18n.t("ticketsList.connectionTitle")}>{ticket.whatsapp?.name}</div>
+							  <div style={{ display: "flex", alignItems: "center", position: "absolute", right: 5, bottom: 5 }}>
+							    <div className={classes.userTag} style={{ position: "relative", right: "auto", bottom: "auto" }} title={i18n.t("ticketsList.connectionTitle")}>
+							      {ticket.whatsapp?.name}
+							    </div>
+							    {ticket.tags && ticket.tags.map(tag => (
+							      <Chip
+							        key={tag.id}
+							        label={tag.name}
+							        size="small"
+							        className={classes.tagChip}
+							        style={{ backgroundColor: tag.color || "#7C7C7C", borderColor: tag.color || "#7C7C7C" }}
+							      />
+							    ))}
+							  </div>
 							)}
 						</span>
 					}
