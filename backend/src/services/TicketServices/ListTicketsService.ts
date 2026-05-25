@@ -32,6 +32,7 @@ const ListTicketsService = async ({
   searchParam = "",
   pageNumber = "1",
   queueIds,
+  tagIds,
   status,
   date,
   showAll,
