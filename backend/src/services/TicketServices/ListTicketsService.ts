@@ -19,6 +19,7 @@ interface Request {
   userId: string;
   withUnreadMessages?: string;
   queueIds: number[];
+  tagIds?: number[];
 }
 
 interface Response {
@@ -141,6 +142,18 @@ const ListTicketsService = async ({
 
   const limit = 40;
   const offset = limit * (+pageNumber - 1);
+
+  if (tagIds && tagIds.length > 0) {
+  includeCondition = [
+    ...includeCondition,
+    {
+      model: TicketTag,
+      as: "ticketTags",
+      where: { tagId: { [Op.in]: tagIds } },
+      required: true,
+    }
+   ];
+ }
 
   const { count, rows: tickets } = await Ticket.findAndCountAll({
     where: whereCondition,
