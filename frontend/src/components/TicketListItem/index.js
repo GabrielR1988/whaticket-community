@@ -13,6 +13,7 @@ import Typography from "@material-ui/core/Typography";
 import Avatar from "@material-ui/core/Avatar";
 import Divider from "@material-ui/core/Divider";
 import Badge from "@material-ui/core/Badge";
+import Chip from "@material-ui/core/Chip";
 
 import { i18n } from "../../translate/i18n";
 
@@ -113,6 +114,13 @@ const useStyles = makeStyles(theme => ({
 		paddingRight: 5,
 		borderRadius: 10,
 		fontSize: "0.9em"
+	},
+	
+	tagChip: {
+	    height: 16,
+	    fontSize: "0.7em",
+	    marginLeft: 2,
+	    color: "#fff",
 	},
 }));
 
