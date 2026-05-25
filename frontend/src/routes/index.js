@@ -17,6 +17,7 @@ import { AuthProvider } from "../context/Auth/AuthContext";
 import { WhatsAppsProvider } from "../context/WhatsApp/WhatsAppsContext";
 import { ThemeProvider } from "../context/DarkMode";
 import Route from "./Route";
+import Tags from "../pages/Tags";
 
 const Routes = () => {
   return (
@@ -36,6 +37,7 @@ const Routes = () => {
                 <Route exact path="/quickAnswers" component={QuickAnswers} isPrivate />
                 <Route exact path="/Settings" component={Settings} isPrivate />
                 <Route exact path="/Queues" component={Queues} isPrivate />
+                <Route exact path="/tags" component={Tags} />
               </LoggedInLayout>
             </WhatsAppsProvider>
           </Switch>
