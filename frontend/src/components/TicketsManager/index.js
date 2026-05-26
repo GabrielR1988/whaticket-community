@@ -233,6 +233,7 @@ const TicketsManager = () => {
         <TicketsTagSelect
           selectedTagIds={selectedTagIds}
           onChange={values => setSelectedTagIds(values)}
+          style={{ marginLeft: 6 }}
         />
       </Paper>
       <TabPanel value={tab} name="open" className={classes.ticketsWrapper}>
