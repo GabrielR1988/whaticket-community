@@ -163,7 +163,7 @@ const reducer = (state, action) => {
 	useEffect(() => {
 		dispatch({ type: "RESET" });
 		setPageNumber(1);
-	}, [status, searchParam, dispatch, showAll, selectedQueueIds]);
+	}, [status, searchParam, dispatch, showAll, selectedQueueIds, selectedTagIds]);
 
 	const { tickets, hasMore, loading } = useTickets({
 		pageNumber,
