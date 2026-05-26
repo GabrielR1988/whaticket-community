@@ -49,8 +49,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    background: theme.palette.background.paper,
-    padding: theme.spacing(1),
+    marginBottom: 4,
   },
   serachInputWrapper: {
     flex: 1,
@@ -235,57 +234,66 @@ const TicketsManager = () => {
           onChange={values => setSelectedTagIds(values)}
           style={{ marginLeft: 6 }}
         />
-      </Paper>
-      <TabPanel value={tab} name="open" className={classes.ticketsWrapper}>
-        <Tabs
-          value={tabOpen}
-          onChange={handleChangeTabOpen}
-          indicatorColor="primary"
-          textColor="primary"
-          variant="fullWidth"
-        >
-          <Tab
-            label={
-              <Badge
-                className={classes.badge}
-                badgeContent={openCount}
+      <Paper square elevation={0} className={classes.ticketOptionsBox}>
+        {tab === "search" ? (
+          <div className={classes.serachInputWrapper}>
+            <SearchIcon className={classes.searchIcon} />
+            <InputBase
+              className={classes.searchInput}
+              inputRef={searchInputRef}
+              placeholder={i18n.t("tickets.search.placeholder")}
+              type="search"
+              onChange={handleSearch}
+            />
+          </div>
+        ) : (
+          <>
+            <div className={classes.ticketOptionsRow}>
+              <Button
+                variant="outlined"
                 color="primary"
+                onClick={() => setNewTicketModalOpen(true)}
               >
-                {i18n.t("ticketsList.assignedHeader")}
-              </Badge>
-            }
-            value={"open"}
-          />
-          <Tab
-            label={
-              <Badge
-                className={classes.badge}
-                badgeContent={pendingCount}
-                color="secondary"
-              >
-                {i18n.t("ticketsList.pendingHeader")}
-              </Badge>
-            }
-            value={"pending"}
-          />
-        </Tabs>
-        <Paper className={classes.ticketsWrapper}>
-          <TicketsList
-            status="open"
-            showAll={showAllTickets}
-            selectedQueueIds={selectedQueueIds}
-            selectedTagIds={selectedTagIds}
-            updateCount={(val) => setOpenCount(val)}
-            style={applyPanelStyle("open")}
-          />
-          <TicketsList
-            status="pending"
-            selectedQueueIds={selectedQueueIds}
-            selectedTagIds={selectedTagIds}
-            updateCount={(val) => setPendingCount(val)}
-            style={applyPanelStyle("pending")}
-          />
-        </Paper>
+                {i18n.t("ticketsManager.buttons.newTicket")}
+              </Button>
+              <Can
+                role={user.profile}
+                perform="tickets-manager:showall"
+                yes={() => (
+                  <FormControlLabel
+                    label={i18n.t("tickets.buttons.showAll")}
+                    labelPlacement="start"
+                    control={
+                      <Switch
+                        size="small"
+                        checked={showAllTickets}
+                        onChange={() =>
+                          setShowAllTickets((prevState) => !prevState)
+                        }
+                        name="showAllTickets"
+                        color="primary"
+                      />
+                    }
+                  />
+                )}
+              />
+            </div>
+            <div className={classes.ticketOptionsRow}>
+              <TicketsQueueSelect
+                style={{ flex: 1, marginRight: 6 }}
+                selectedQueueIds={selectedQueueIds}
+                userQueues={user?.queues}
+                onChange={(values) => setSelectedQueueIds(values)}
+              />
+              <TicketsTagSelect
+                selectedTagIds={selectedTagIds}
+                onChange={values => setSelectedTagIds(values)}
+                style={{ flex: 1 }}
+              />
+            </div>
+          </>
+        )}
+      </Paper>
       </TabPanel>
       <TabPanel value={tab} name="closed" className={classes.ticketsWrapper}>
         <TicketsList
