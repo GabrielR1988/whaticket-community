@@ -11,10 +11,10 @@ import toastError from "../../errors/toastError";
 const useStyles = makeStyles(theme => ({
   chips: { display: "flex", flexWrap: "wrap" },
   chip: { margin: 2, height: 20, fontSize: "0.7em", color: "#fff" },
-  formControl: { minWidth: 80, maxWidth: 120 },
+  formControl: { minWidth: 90, maxWidth: 130 },
 }));
 
-const TicketsTagSelect = ({ selectedTagIds = [], onChange }) => {
+const TicketsTagSelect = ({ selectedTagIds = [], onChange, style }) => {
   const classes = useStyles();
   const [tags, setTags] = useState([]);
 
@@ -23,7 +23,7 @@ const TicketsTagSelect = ({ selectedTagIds = [], onChange }) => {
   }, []);
 
   return (
-    <FormControl className={classes.formControl} margin="dense" variant="outlined">
+    <FormControl className={classes.formControl} margin="dense" variant="outlined" style={style}>
       <InputLabel>Tags</InputLabel>
       <Select
         multiple
