@@ -3,7 +3,7 @@ import { getBackendUrl } from "../config";
 
 const api = axios.create({
   // OJO: Terminamos en /wtapi (sin barra al final)
-  baseURL: "https://mantenertoken-production.up.railway.app/wtapi",
+  baseURL: getBackendUrl(),
   withCredentials: true,
 });
 

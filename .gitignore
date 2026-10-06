@@ -4,3 +4,7 @@ ssl/
 .wwebjs_auth
 .wwebjs_cache
 .idea
+# Dumps y datos locales (no subir)
+*.dump
+*.bak
+data/

@@ -452,7 +452,7 @@ const init = async (whatsapp: Whatsapp): Promise<void> => {
 
     const wbot: Session = new Client({
       //session: sessionCfg,
-      authStrategy: new LocalAuth({ clientId: `bd_${whatsapp.id}` }),
+      authStrategy: new LocalAuth({ clientId: `bd_${whatsapp.id}`, dataPath: process.env.WWEBJS_AUTH_PATH }),
       puppeteer: {
         // headless: false, // TODO make sure chromium closes on session disconnection / delete
         executablePath: process.env.CHROME_BIN || undefined,

@@ -36,14 +36,17 @@ export default defineConfig({
     global: "globalThis",
   },
   optimizeDeps: {
-    include: [
-      "mic-recorder-to-mp3",
-      "@material-ui/core",
-      "@material-ui/icons",
-      "@material-ui/lab",
-    ],
-    exclude: [],
-  },
+	esbuildOptions: {
+		loader: { ".js": "jsx" },
+	},
+	include: [
+		"mic-recorder-to-mp3",
+		"@material-ui/core",
+		"@material-ui/icons",
+		"@material-ui/lab",
+	],
+	exclude: [],
+},
   resolve: {
     alias: {
       "jss-plugin-globalThis": "jss-plugin-global",

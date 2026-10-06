@@ -1,0 +1,29 @@
+# Solo desarrollo local (Compose lo aplica automaticamente). Railway NO usa este archivo.
+# Codigo montado desde tu carpeta + recarga automatica al guardar.
+services:
+  backend:
+    command: >
+      sh -c "dockerize -wait tcp://db:5432 &&
+             npm run build &&
+             npx sequelize db:migrate &&
+             npx ts-node-dev --respawn --transpile-only --poll --ignore node_modules src/server.ts"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./backend:/usr/src/app
+      - backend_node_modules:/usr/src/app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+      target: build
+    command: npx vite --host 0.0.0.0 --port 3333 --no-open
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+
+volumes:
+  backend_node_modules:
+  frontend_node_modules:
