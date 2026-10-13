@@ -7,6 +7,7 @@ import { getIO } from "../libs/socket";
 import { logger } from "../utils/logger";
 import { debounce } from "../helpers/Debounce";
 import formatBody from "../helpers/Mustache";
+import uploadConfig from "../config/upload";
 
 import Contact from "../models/Contact";
 import Ticket from "../models/Ticket";
@@ -103,7 +104,7 @@ const saveMediaFile = async (mediaPayload: MediaPayload): Promise<string> => {
 
   try {
     await writeFileAsync(
-      join(__dirname, "..", "..", "public", filename),
+      join(uploadConfig.directory, filename),
       mediaPayload.data,
       "base64"
     );

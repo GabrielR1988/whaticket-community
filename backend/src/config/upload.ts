@@ -1,7 +1,11 @@
+import fs from "fs";
 import path from "path";
 import multer from "multer";
 
 const publicFolder = process.env.PUBLIC_PATH || path.resolve(__dirname, "..", "..", "public");
+// Con PUBLIC_PATH dentro de un volumen la carpeta puede no existir todavia.
+fs.mkdirSync(publicFolder, { recursive: true });
+
 export default {
   directory: publicFolder,
 
