@@ -27,7 +27,8 @@ import {
   ContactPayload,
   MessagePayload,
   MediaPayload,
-  WhatsappContextPayload
+  WhatsappContextPayload,
+  AdReferral
 } from "../../../handlers/handleWhatsappEvents";
 
 interface Session extends Client {
@@ -134,6 +135,20 @@ const prepareLocation = (msg: WbotMessage): WbotMessage => {
   return msg;
 };
 
+// Datos del anuncio cuando el mensaje llega desde una campaña Click to WhatsApp
+// (WhatsApp Web los guarda en ctwaContext del mensaje crudo).
+const getAdReferral = (msg: WbotMessage): AdReferral | undefined => {
+  const ctwa = (msg as any)._data?.ctwaContext;
+  if (!ctwa?.title && !ctwa?.sourceUrl) return undefined;
+
+  return {
+    title: ctwa.title || undefined,
+    body: ctwa.description || undefined,
+    sourceUrl: ctwa.sourceUrl || undefined,
+    sourceId: ctwa.sourceId || undefined
+  };
+};
+
 const convertToMessagePayload = async (
   msg: WbotMessage
 ): Promise<MessagePayload> => {
@@ -154,7 +169,8 @@ const convertToMessagePayload = async (
     from: processedMsg.from,
     to: processedMsg.to,
     hasQuotedMsg: processedMsg.hasQuotedMsg,
-    quotedMsgId
+    quotedMsgId,
+    adReferral: processedMsg.fromMe ? undefined : getAdReferral(processedMsg)
   };
 };
 

@@ -57,7 +57,8 @@ import {
   ContactPayload,
   MessagePayload,
   MediaPayload,
-  WhatsappContextPayload
+  WhatsappContextPayload,
+  AdReferral
 } from "../../../handlers/handleWhatsappEvents";
 
 type WALogger = NonNullable<Parameters<typeof makeInMemoryStore>[0]["logger"]>;
@@ -477,6 +478,24 @@ const shouldHandleMessage = (msg: WAMessage): boolean => {
   return hasMedia(msg) || allowedFromMeTypes.includes(messageType || "");
 };
 
+// Datos del anuncio cuando el mensaje llega desde una campaña Click to WhatsApp.
+const getAdReferral = (msg: WAMessage): AdReferral | undefined => {
+  const content = msg.message || {};
+  const ad = (
+    content.extendedTextMessage?.contextInfo ||
+    content.imageMessage?.contextInfo ||
+    content.videoMessage?.contextInfo
+  )?.externalAdReply;
+  if (!ad?.title && !ad?.sourceUrl) return undefined;
+
+  return {
+    title: ad.title || undefined,
+    body: ad.body || undefined,
+    sourceUrl: ad.sourceUrl || undefined,
+    sourceId: ad.sourceId || undefined
+  };
+};
+
 const convertToMessagePayload = (msg: WAMessage): MessagePayload => {
   const fromJid = msg.key.remoteJid || "";
   const toJid = msg.key.fromMe ? fromJid : msg.key.participant || fromJid;
@@ -493,7 +512,8 @@ const convertToMessagePayload = (msg: WAMessage): MessagePayload => {
     to: toJid,
     hasQuotedMsg: Boolean(getQuotedMessageId(msg)),
     quotedMsgId: getQuotedMessageId(msg),
-    ack: fromMe ? 1 : 0
+    ack: fromMe ? 1 : 0,
+    adReferral: fromMe ? undefined : getAdReferral(msg)
   };
 };
 

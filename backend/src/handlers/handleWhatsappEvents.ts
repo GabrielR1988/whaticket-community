@@ -18,6 +18,11 @@ import FindOrCreateTicketService from "../services/TicketServices/FindOrCreateTi
 import ShowWhatsAppService from "../services/WhatsappService/ShowWhatsAppService";
 import UpdateTicketService from "../services/TicketServices/UpdateTicketService";
 import CreateContactService from "../services/ContactServices/CreateContactService";
+import SyncWhatsappToEspoService, {
+  AdReferral
+} from "../services/EspoServices/SyncWhatsappToEspoService";
+
+export type { AdReferral };
 
 import { whatsappProvider } from "../providers/WhatsApp/whatsappProvider";
 import { MessageType, MessageAck } from "../providers/WhatsApp/types";
@@ -46,6 +51,7 @@ export interface MessagePayload {
   mediaUrl?: string;
   mediaType?: string;
   ack?: MessageAck;
+  adReferral?: AdReferral;
 }
 
 export interface MediaPayload {
@@ -230,6 +236,15 @@ export const handleMessage = async (
       profilePicUrl: contactPayload.profilePicUrl,
       isGroup: contactPayload.isGroup
     });
+
+    if (!contextPayload.groupContact && !contactPayload.isGroup) {
+      SyncWhatsappToEspoService({
+        number: contactPayload.number,
+        name: contactPayload.name,
+        body: processedMessage.body,
+        adReferral: processedMessage.adReferral
+      });
+    }
 
     let groupContact: Contact | undefined;
     if (contextPayload.groupContact) {
