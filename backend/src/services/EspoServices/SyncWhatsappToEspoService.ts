@@ -7,7 +7,10 @@ import { logger } from "../../utils/logger";
 //   (y el Contact si faltaba), salvo que ya haya una abierta.
 // Se desactiva sola si faltan ESPO_URL / ESPO_API_KEY.
 
-const ESPO_URL = (process.env.ESPO_URL || "").replace(/\/+$/, "");
+const ESPO_URL = (process.env.ESPO_URL || "")
+  .trim()
+  .replace(/^(?!https?:\/\/)(?=.)/, "https://")
+  .replace(/\/+$/, "");
 const ESPO_API_KEY = process.env.ESPO_API_KEY || "";
 const STAGE = process.env.ESPO_OPPORTUNITY_STAGE || "Prospecting";
 const CLOSED_STAGES = (process.env.ESPO_CLOSED_STAGES || "Closed Won,Closed Lost")
