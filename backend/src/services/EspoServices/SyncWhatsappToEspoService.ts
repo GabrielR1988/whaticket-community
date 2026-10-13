@@ -133,7 +133,8 @@ const createContact = async (
     ...(ASSIGNED_USER_ID && { assignedUserId: ASSIGNED_USER_ID })
   });
   logger.info(`EspoCRM: Contact creado ${contact.id} (+${number})`);
-  return contact;
+  // La respuesta del POST no trae "name" (es un campo calculado en Espo).
+  return { ...contact, name: contact.name || name || `+${number}` };
 };
 
 const updateReferralIfMissing = async (
