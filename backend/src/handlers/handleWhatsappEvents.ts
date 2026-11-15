@@ -238,6 +238,11 @@ export const handleMessage = async (
       isGroup: contactPayload.isGroup
     });
 
+    const ctwaClid = processedMessage.adReferral?.ctwaClid;
+    if (ctwaClid && contact.ctwaClid !== ctwaClid) {
+      await contact.update({ ctwaClid });
+    }
+
     if (!contextPayload.groupContact && !contactPayload.isGroup) {
       SyncWhatsappToEspoService({
         number: contactPayload.number,

@@ -44,6 +44,10 @@ class Contact extends Model<Contact> {
   @Column
   isGroup: boolean;
 
+  // Click ID del anuncio Click-to-WhatsApp por el que llego el contacto (para Meta CAPI).
+  @Column
+  ctwaClid: string;
+
   @CreatedAt
   createdAt: Date;
 

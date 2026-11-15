@@ -23,7 +23,14 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json());
+app.use(
+  express.json({
+    // Cuerpo crudo para validar la firma del webhook de Meta.
+    verify: (req, _res, buf) => {
+      (req as any).rawBody = buf;
+    }
+  })
+);
 app.use(Sentry.Handlers.requestHandler());
 app.use("/public", express.static(uploadConfig.directory));
 app.use(routes);

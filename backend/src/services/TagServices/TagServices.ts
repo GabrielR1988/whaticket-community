@@ -1,13 +1,17 @@
 import Tag from "../../models/Tag";
 import AppError from "../../errors/AppError";
 import TicketTag from "../../models/TicketTag";
+import SendMetaConversionService from "../MetaServices/SendMetaConversionService";
 
 interface TagData {
   name: string;
   color?: string;
 }
 
-export const CreateTagService = async ({ name, color = "#7C7C7C" }: TagData): Promise<Tag> => {
+export const CreateTagService = async ({
+  name,
+  color = "#7C7C7C"
+}: TagData): Promise<Tag> => {
   const tag = await Tag.create({ name, color });
   return tag;
 };
@@ -38,10 +42,19 @@ export const SyncTagsService = async (
   ticketId: number,
   tagIds: number[]
 ): Promise<void> => {
+  const previous = await TicketTag.findAll({ where: { ticketId } });
+  const previousIds = previous.map(tt => Number(tt.tagId));
+
   await TicketTag.destroy({ where: { ticketId } });
 
   if (tagIds && tagIds.length > 0) {
     const records = tagIds.map(tagId => ({ ticketId, tagId }));
     await TicketTag.bulkCreate(records);
   }
+
+  // Solo las etiquetas recien agregadas disparan eventos a Meta (en segundo plano).
+  const addedIds = (tagIds || [])
+    .map(Number)
+    .filter(id => !previousIds.includes(id));
+  SendMetaConversionService(ticketId, addedIds);
 };

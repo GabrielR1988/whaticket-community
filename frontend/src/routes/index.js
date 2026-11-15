@@ -18,6 +18,7 @@ import { WhatsAppsProvider } from "../context/WhatsApp/WhatsAppsContext";
 import { ThemeProvider } from "../context/DarkMode";
 import Route from "./Route";
 import Tags from "../pages/Tags";
+import Templates from "../pages/Templates";
 
 const Routes = () => {
   return (
@@ -38,6 +39,7 @@ const Routes = () => {
                 <Route exact path="/settings" component={Settings} isPrivate />
                 <Route exact path="/queues" component={Queues} isPrivate />
                 <Route exact path="/tags" component={Tags} isPrivate />
+                <Route exact path="/templates" component={Templates} isPrivate />
               </LoggedInLayout>
             </WhatsAppsProvider>
           </Switch>

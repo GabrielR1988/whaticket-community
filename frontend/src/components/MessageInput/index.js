@@ -19,6 +19,9 @@ import ClearIcon from "@material-ui/icons/Clear";
 import MicIcon from "@material-ui/icons/Mic";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
 import HighlightOffIcon from "@material-ui/icons/HighlightOff";
+import ListAltIcon from "@material-ui/icons/ListAlt";
+import Tooltip from "@material-ui/core/Tooltip";
+import SendTemplateModal from "../SendTemplateModal";
 import {
   FormControlLabel,
   Hidden,
@@ -216,6 +219,7 @@ const useStyles = makeStyles(theme => ({
 const MessageInput = ({ ticketStatus }) => {
   const classes = useStyles();
   const { ticketId } = useParams();
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
 
   const [medias, setMedias] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -511,6 +515,23 @@ const MessageInput = ({ ticketStatus }) => {
                 <AttachFileIcon className={classes.sendMessageIcons} />
               </IconButton>
             </label>
+            <Tooltip title="Enviar plantilla de WhatsApp">
+              <span>
+                <IconButton
+                  aria-label="template"
+                  component="span"
+                  disabled={loading || recording || ticketStatus !== "open"}
+                  onClick={() => setTemplateModalOpen(true)}
+                >
+                  <ListAltIcon className={classes.sendMessageIcons} />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <SendTemplateModal
+              open={templateModalOpen}
+              onClose={() => setTemplateModalOpen(false)}
+              ticketId={ticketId}
+            />
             <FormControlLabel
               style={{ marginRight: 7, color: "gray" }}
               label={i18n.t("messagesInput.signMessage")}

@@ -47,6 +47,7 @@ export interface AdReferral {
   body?: string;
   sourceUrl?: string;
   sourceId?: string;
+  ctwaClid?: string;
 }
 
 interface SyncPayload {

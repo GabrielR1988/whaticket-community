@@ -492,7 +492,8 @@ const getAdReferral = (msg: WAMessage): AdReferral | undefined => {
     title: ad.title || undefined,
     body: ad.body || undefined,
     sourceUrl: ad.sourceUrl || undefined,
-    sourceId: ad.sourceId || undefined
+    sourceId: ad.sourceId || undefined,
+    ctwaClid: (ad as any).ctwaClid || undefined
   };
 };
 

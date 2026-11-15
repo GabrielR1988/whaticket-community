@@ -141,11 +141,15 @@ const getAdReferral = (msg: WbotMessage): AdReferral | undefined => {
   const ctwa = (msg as any)._data?.ctwaContext;
   if (!ctwa?.title && !ctwa?.sourceUrl) return undefined;
 
+  // Nombres de campos (sin valores) para verificar en logs donde viene el click ID.
+  logger.info(`ctwaContext recibido, campos: ${Object.keys(ctwa).join(",")}`);
+
   return {
     title: ctwa.title || undefined,
     body: ctwa.description || undefined,
     sourceUrl: ctwa.sourceUrl || undefined,
-    sourceId: ctwa.sourceId || undefined
+    sourceId: ctwa.sourceId || undefined,
+    ctwaClid: ctwa.ctwaClid || ctwa.ctwa_clid || ctwa.clid || undefined
   };
 };
 
