@@ -3,6 +3,7 @@ import { logger } from "../../utils/logger";
 import Ticket from "../../models/Ticket";
 import Contact from "../../models/Contact";
 import Tag from "../../models/Tag";
+import { getCloudConfig } from "../../libs/metaGraph";
 
 // Integracion WhaTicket -> Meta Conversions API (CAPI).
 // Cuando a un ticket se le AGREGA una etiqueta configurada (por defecto "Contacto" y "Venta"),
@@ -12,14 +13,13 @@ import Tag from "../../models/Tag";
 // - Con META_TEST_EVENT_CODE los eventos caen en "Probar eventos" del Administrador de eventos
 //   (no cuentan para las campañas). Quitarlo para pasar a produccion.
 // - Si el contacto llego por un anuncio Click-to-WhatsApp y se capturo su ctwa_clid, y hay
-//   META_WABA_ID, el evento sale como "business_messaging" (atribucion exacta al anuncio).
+//   cuenta de WhatsApp conectada (WABA), el evento sale como "business_messaging" (atribucion exacta al anuncio).
 //   Si no, sale como "chat" con el telefono hasheado (Meta lo matchea con el usuario).
 
 const DATASET_ID = (process.env.META_DATASET_ID || "").trim();
 const ACCESS_TOKEN = (process.env.META_ACCESS_TOKEN || "").trim();
 const API_VERSION = (process.env.META_API_VERSION || "v24.0").trim();
 const TEST_EVENT_CODE = (process.env.META_TEST_EVENT_CODE || "").trim();
-const WABA_ID = (process.env.META_WABA_ID || "").trim();
 const CURRENCY = (process.env.META_CURRENCY || "CLP").trim().toUpperCase();
 const PURCHASE_VALUE = Number(process.env.META_PURCHASE_VALUE || 0);
 const COUNTRY = (process.env.META_COUNTRY || "cl").trim().toLowerCase();
@@ -77,7 +77,8 @@ const buildEvent = (
   ticket: Ticket,
   contact: Contact,
   tag: Tag,
-  eventName: string
+  eventName: string,
+  wabaId: string
 ): Record<string, unknown> => {
   const phone = (contact.number || "").replace(/\D/g, "");
   const userData: Record<string, unknown> = {
@@ -86,10 +87,10 @@ const buildEvent = (
   };
   if (phone) userData.ph = [sha256(phone)];
 
-  const useBusinessMessaging = Boolean(contact.ctwaClid && WABA_ID);
+  const useBusinessMessaging = Boolean(contact.ctwaClid && wabaId);
   if (useBusinessMessaging) {
     userData.ctwa_clid = contact.ctwaClid;
-    userData.whatsapp_business_account_id = WABA_ID;
+    userData.whatsapp_business_account_id = wabaId;
   }
 
   const event: Record<string, unknown> = {
@@ -129,12 +130,14 @@ const SendMetaConversionService = async (
     if (!ticket?.contact || ticket.contact.isGroup) return;
 
     const { contact } = ticket;
+    const { wabaId } = await getCloudConfig();
     await Promise.all(
       toSend.map(({ tag, eventName }) =>
-        postEvent(buildEvent(ticket, contact, tag, eventName)).catch(err =>
-          logger.error(
-            `Meta CAPI: error enviando ${eventName} del ticket ${ticketId}: ${err}`
-          )
+        postEvent(buildEvent(ticket, contact, tag, eventName, wabaId)).catch(
+          err =>
+            logger.error(
+              `Meta CAPI: error enviando ${eventName} del ticket ${ticketId}: ${err}`
+            )
         )
       )
     );

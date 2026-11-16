@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import AppError from "../errors/AppError";
-import { isCloudApiEnabled, META_PHONE_NUMBER_ID } from "../libs/metaGraph";
+import { getCloudConfig } from "../libs/metaGraph";
 import {
   CreateTemplateService,
   DeleteTemplateService,
@@ -8,6 +8,12 @@ import {
   SendTemplateService
 } from "../services/MetaServices/WhatsappTemplateService";
 import { getIO } from "../libs/socket";
+import {
+  CheckConnectionService,
+  CompleteEmbeddedSignupService,
+  DisconnectService,
+  GetConnectionInfoService
+} from "../services/MetaServices/MetaConnectionService";
 
 const ensureAdmin = (req: Request): void => {
   if (req.user.profile !== "admin") {
@@ -16,13 +22,14 @@ const ensureAdmin = (req: Request): void => {
 };
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
-  if (!isCloudApiEnabled) {
+  const config = await getCloudConfig();
+  if (!config.enabled) {
     return res.json({ enabled: false, canSend: false, templates: [] });
   }
   const templates = await ListTemplatesService();
   return res.json({
     enabled: true,
-    canSend: Boolean(META_PHONE_NUMBER_ID),
+    canSend: Boolean(config.phoneNumberId),
     templates
   });
 };
@@ -56,4 +63,39 @@ export const send = async (req: Request, res: Response): Promise<Response> => {
     params
   });
   return res.status(200).json({ message: "Plantilla enviada" });
+};
+
+export const connectionInfo = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  return res.json(await GetConnectionInfoService());
+};
+
+export const connectionComplete = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  ensureAdmin(req);
+  const result = await CompleteEmbeddedSignupService(req.body);
+  getIO().emit("metaConnection", { action: "update" });
+  return res.json(result);
+};
+
+export const connectionCheck = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  ensureAdmin(req);
+  return res.json(await CheckConnectionService());
+};
+
+export const connectionRemove = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  ensureAdmin(req);
+  await DisconnectService();
+  getIO().emit("metaConnection", { action: "update" });
+  return res.json({ message: "Desconectado del CRM" });
 };

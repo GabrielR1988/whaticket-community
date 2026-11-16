@@ -9,6 +9,27 @@ const metaRoutes = express.Router();
 metaRoutes.get("/meta/webhook", MetaWebhookController.verify);
 metaRoutes.post("/meta/webhook", MetaWebhookController.receive);
 
+metaRoutes.get(
+  "/meta/connection",
+  isAuth,
+  MetaTemplateController.connectionInfo
+);
+metaRoutes.post(
+  "/meta/connection",
+  isAuth,
+  MetaTemplateController.connectionComplete
+);
+metaRoutes.get(
+  "/meta/connection/check",
+  isAuth,
+  MetaTemplateController.connectionCheck
+);
+metaRoutes.delete(
+  "/meta/connection",
+  isAuth,
+  MetaTemplateController.connectionRemove
+);
+
 metaRoutes.get("/meta/templates", isAuth, MetaTemplateController.index);
 metaRoutes.post("/meta/templates", isAuth, MetaTemplateController.store);
 metaRoutes.delete(

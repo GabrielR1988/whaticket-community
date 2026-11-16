@@ -37,6 +37,7 @@ import api from "../../services/api";
 import WhatsAppModal from "../../components/WhatsAppModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import QrcodeModal from "../../components/QrcodeModal";
+import MetaCloudConnection from "../../components/MetaCloudConnection";
 import { i18n } from "../../translate/i18n";
 import { WhatsAppsContext } from "../../context/WhatsApp/WhatsAppsContext";
 import toastError from "../../errors/toastError";
@@ -321,6 +322,7 @@ const Connections = () => {
 					</Button>
 				</MainHeaderButtonsWrapper>
 			</MainHeader>
+			<MetaCloudConnection />
 			<Paper className={classes.mainPaper} variant="outlined">
 				<Table size="small">
 					<TableHead>

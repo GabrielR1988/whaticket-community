@@ -70,17 +70,38 @@ Los chats se siguen atendiendo por WhatsApp Web (QR). La Cloud API se usa para:
 2. **Plantillas** (menú *Administración → Plantillas*): crear (nombre, categoría, idioma, encabezado, cuerpo con `{{1}}`, pie, botones de respuesta rápida), mandarlas a aprobación, ver su estado y borrarlas, todo sin entrar a Meta.
 3. **Enviar plantilla** desde el ticket: ícono de lista junto al clip. Elegís una plantilla aprobada, completás las variables y se envía por la API. Sirve aunque hayan pasado más de 24 h desde el último mensaje del cliente.
 
-### Qué sacar de Meta (una sola vez)
+### Alta del número desde el CRM (Conexiones → "WhatsApp API (Meta)")
 
-1. **App de Meta** (developers.facebook.com) con el producto *WhatsApp*: es la que se usa para el alta en coexistencia.
-2. **Token permanente**: Configuración del negocio → Usuarios del sistema → crear un usuario admin → asignarle la App y la cuenta de WhatsApp → *Generar token* con `whatsapp_business_management` y `whatsapp_business_messaging` → `META_WHATSAPP_TOKEN`.
-3. **WABA ID** y **Phone number ID**: App → WhatsApp → Configuración de la API → `META_WABA_ID`, `META_PHONE_NUMBER_ID`.
-4. **App Secret**: App → Configuración → Básica → `META_APP_SECRET`.
-5. **Webhook**: App → WhatsApp → Configuración → Webhook:
-   - URL de devolución de llamada: `https://<dominio del backend>/meta/webhook`
+Arriba de la tabla de conexiones QR hay una tarjeta **WhatsApp API (Meta) — coexistencia** con el botón **Conectar con Meta** (solo administradores). Abre la ventana de Meta (Embedded Signup) y ahí:
+
+1. Iniciás sesión con Facebook y elegís o creás el portfolio del negocio.
+2. Elegís conectar la **app WhatsApp Business existente** e ingresás el número.
+3. Meta muestra un **QR**: se escanea **desde la app WhatsApp Business del celular** (no es el QR de WhaTicket). También llega un mensaje al número con el enlace al QR.
+4. Opcional: compartir el historial de chats.
+5. Al cerrar, el CRM canjea el código por el token, se suscribe al webhook de esa cuenta, pide la sincronización de contactos e historial y guarda todo (token, WABA y número) en la base. No hace falta copiar nada a mano.
+
+También sirve para un **número nuevo solo API** (sin app en el celular): si en la ventana se elige esa opción, el CRM registra el número en la Cloud API con un PIN de dos pasos que queda guardado en la tabla `Settings` (`metaRegisterPin`).
+
+- **Verificar** consulta en vivo el estado del número en Meta (nombre, calidad, si sigue en la app, apps suscritas).
+- **Desconectar** borra las credenciales del CRM; no da de baja el número en Meta ni lo saca del celular.
+- La conexión QR de WhaTicket (tabla de abajo) es independiente: después del alta, revisar que siga conectada y, si se cayó, reescanear.
+
+### Qué configurar en Meta (una sola vez, antes del botón)
+
+1. **App de Meta** (developers.facebook.com → Crear app → tipo *Negocios*), dentro del portfolio del cliente. Agregarle los productos **WhatsApp** y **Facebook Login for Business**.
+   - App → Configuración → Básica: copiar **ID de la app** → `META_APP_ID` y **Clave secreta** → `META_APP_SECRET`.
+   - Agregar el dominio del CRM (`mantenertoken-production.up.railway.app`) en *Dominios de la app* y en Facebook Login for Business → *Dominios permitidos para el SDK de JavaScript*.
+2. **Configuración de Embedded Signup**: Facebook Login for Business → Configuraciones → Crear → variante *WhatsApp Embedded Signup*, con permisos `whatsapp_business_management` y `whatsapp_business_messaging` → copiar el **ID de configuración** → `META_ES_CONFIG_ID`.
+3. **Webhook**: App → WhatsApp → Configuración → Webhook:
+   - URL de devolución de llamada: `https://whaticket-community-production-d61c.up.railway.app/meta/webhook`
    - Token de verificación: el mismo valor que `META_WEBHOOK_VERIFY_TOKEN` (inventarlo)
    - Suscribirse a los campos `messages` y `message_template_status_update`.
-6. **Dataset vinculado a WhatsApp** (para eventos `business_messaging`): en el Administrador de eventos, vincular el dataset a la cuenta de WhatsApp Business (Configuración → Activos conectados). También se puede obtener con `GET /{WABA_ID}/dataset`, que devuelve (o crea) el dataset de esa cuenta.
+4. Cargar en Railway (servicio WhaTicket backend) `META_APP_ID`, `META_APP_SECRET`, `META_ES_CONFIG_ID`, `META_WEBHOOK_VERIFY_TOKEN`. Con eso se habilita el botón.
+5. **Dataset vinculado a WhatsApp** (para eventos `business_messaging`): en el Administrador de eventos, vincular el dataset a la cuenta de WhatsApp Business (Configuración → Activos conectados). También se puede obtener con `GET /{WABA_ID}/dataset`, que devuelve (o crea) el dataset de esa cuenta.
+
+Notas:
+- Si la App y el número son del mismo portfolio del cliente, debería alcanzar con la App en modo desarrollo y el usuario como administrador de la App. Para dar de alta números de **otros** negocios, Meta exige ser proveedor de tecnología (verificación del negocio y revisión de la app).
+- Alternativa sin botón: cargar a mano `META_WHATSAPP_TOKEN` (token de un usuario del sistema), `META_WABA_ID` y `META_PHONE_NUMBER_ID`. Lo conectado desde el CRM tiene prioridad sobre esas variables.
 
 ### Prueba del webhook
 

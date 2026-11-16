@@ -3,10 +3,9 @@ import Ticket from "../../models/Ticket";
 import Contact from "../../models/Contact";
 import CreateMessageService from "../MessageServices/CreateMessageService";
 import {
+  CloudConfig,
+  getCloudConfig,
   graphRequest,
-  isCloudApiEnabled,
-  META_PHONE_NUMBER_ID,
-  META_WABA_ID,
   MetaGraphError
 } from "../../libs/metaGraph";
 
@@ -31,13 +30,15 @@ export interface SendTemplateInput {
   params?: string[];
 }
 
-const ensureEnabled = (needsPhone = false): void => {
-  if (!isCloudApiEnabled || (needsPhone && !META_PHONE_NUMBER_ID)) {
+const ensureEnabled = async (needsPhone = false): Promise<CloudConfig> => {
+  const config = await getCloudConfig();
+  if (!config.enabled || (needsPhone && !config.phoneNumberId)) {
     throw new AppError(
-      "La API de WhatsApp (Meta) no esta configurada: faltan META_WHATSAPP_TOKEN, META_WABA_ID o META_PHONE_NUMBER_ID",
+      "La API de WhatsApp (Meta) no esta conectada. Conectala en Conexiones -> WhatsApp API (Meta).",
       400
     );
   }
+  return config;
 };
 
 const wrapMetaError = async <T>(fn: () => Promise<T>): Promise<T> => {
@@ -63,16 +64,12 @@ export const renderTemplateText = (text: string, params: string[]): string =>
   );
 
 export const ListTemplatesService = async (): Promise<any[]> => {
-  ensureEnabled();
+  const { wabaId } = await ensureEnabled();
   return wrapMetaError(async () => {
-    const data = await graphRequest(
-      "GET",
-      `${META_WABA_ID}/message_templates`,
-      {
-        fields: "id,name,status,category,language,components,rejected_reason",
-        limit: "200"
-      }
-    );
+    const data = await graphRequest("GET", `${wabaId}/message_templates`, {
+      fields: "id,name,status,category,language,components,rejected_reason",
+      limit: "200"
+    });
     return data.data || [];
   });
 };
@@ -80,7 +77,7 @@ export const ListTemplatesService = async (): Promise<any[]> => {
 export const CreateTemplateService = async (
   input: TemplateInput
 ): Promise<any> => {
-  ensureEnabled();
+  const { wabaId } = await ensureEnabled();
 
   const name = (input.name || "").trim();
   if (!/^[a-z0-9_]{1,512}$/.test(name)) {
@@ -130,7 +127,7 @@ export const CreateTemplateService = async (
   }
 
   return wrapMetaError(() =>
-    graphRequest("POST", `${META_WABA_ID}/message_templates`, undefined, {
+    graphRequest("POST", `${wabaId}/message_templates`, undefined, {
       name,
       category: input.category,
       language: input.language || "es",
@@ -143,9 +140,9 @@ export const DeleteTemplateService = async (
   name: string,
   hsmId?: string
 ): Promise<void> => {
-  ensureEnabled();
+  const { wabaId } = await ensureEnabled();
   await wrapMetaError(() =>
-    graphRequest("DELETE", `${META_WABA_ID}/message_templates`, {
+    graphRequest("DELETE", `${wabaId}/message_templates`, {
       name,
       ...(hsmId ? { hsm_id: hsmId } : {})
     })
@@ -158,7 +155,7 @@ export const SendTemplateService = async ({
   language,
   params = []
 }: SendTemplateInput): Promise<void> => {
-  ensureEnabled(true);
+  const { phoneNumberId } = await ensureEnabled(true);
 
   const ticket = await Ticket.findByPk(ticketId, { include: [Contact] });
   if (!ticket?.contact) throw new AppError("ERR_NO_TICKET_FOUND", 404);
@@ -189,7 +186,7 @@ export const SendTemplateService = async ({
   }
 
   const data = await wrapMetaError(() =>
-    graphRequest("POST", `${META_PHONE_NUMBER_ID}/messages`, undefined, {
+    graphRequest("POST", `${phoneNumberId}/messages`, undefined, {
       messaging_product: "whatsapp",
       to: ticket.contact.number,
       type: "template",
