@@ -62,7 +62,8 @@ const Settings = () => {
 				setSettings(prevState => {
 					const aux = [...prevState];
 					const settingIndex = aux.findIndex(s => s.key === data.setting.key);
-					aux[settingIndex].value = data.setting.value;
+					if (settingIndex === -1) return [...aux, data.setting];
+					aux[settingIndex] = { ...aux[settingIndex], value: data.setting.value };
 					return aux;
 				});
 			}
@@ -88,8 +89,33 @@ const Settings = () => {
 	};
 
 	const getSettingValue = key => {
-		const { value } = settings.find(s => s.key === key);
-		return value;
+		const setting = settings.find(s => s.key === key);
+		return setting ? setting.value : "";
+	};
+
+	// Frases de EspoCRM: se editan en el campo y se guardan al salir de él.
+	const [frases, setFrases] = useState({});
+	const valorFrase = key =>
+		frases[key] !== undefined ? frases[key] : (getSettingValue(key) || "").split("|").join("\n");
+
+	const guardarFrases = async key => {
+		if (frases[key] === undefined) return;
+		const value = frases[key]
+			.split("\n")
+			.map(f => f.trim())
+			.filter(Boolean)
+			.join("|");
+		try {
+			await api.put(`/settings/${key}`, { value });
+			setSettings(prev => {
+				const resto = prev.filter(s => s.key !== key);
+				return [...resto, { key, value }];
+			});
+			setFrases(prev => ({ ...prev, [key]: undefined }));
+			toast.success(i18n.t("settings.success"));
+		} catch (err) {
+			toastError(err);
+		}
 	};
 
 	return (
@@ -135,6 +161,33 @@ const Settings = () => {
 						value={settings && settings.length > 0 && getSettingValue("userApiToken")}
 					/>
 				</Paper>
+
+				<Typography variant="body2" gutterBottom style={{ marginTop: 24 }}>
+					EspoCRM: frases que disparan la carga (una por renglón, sin importar mayúsculas, tildes ni asteriscos).
+					Las derivaciones del bot de IA crean la oportunidad siempre, aunque no usen estas frases.
+				</Typography>
+				{[
+					["espoOpportunityPhrases", "Frases que crean una Oportunidad"],
+					["espoContactPhrases", "Frases que crean un Contacto"],
+				].map(([key, label]) => (
+					<Paper className={classes.paper} key={key}>
+						<TextField
+							label={label}
+							margin="dense"
+							variant="outlined"
+							fullWidth
+							multiline
+							rows={3}
+							helperText="Se guarda al salir del campo. Máximo 255 caracteres en total."
+							value={valorFrase(key)}
+							onChange={e => {
+								const value = e.target.value;
+								setFrases(prev => ({ ...prev, [key]: value }));
+							}}
+							onBlur={() => guardarFrases(key)}
+						/>
+					</Paper>
+				))}
 
 			</Container>
 		</div>

@@ -22,6 +22,7 @@ import CreateContactService from "../services/ContactServices/CreateContactServi
 import SyncWhatsappToEspoService, {
   AdReferral
 } from "../services/EspoServices/SyncWhatsappToEspoService";
+import NotifyBotService from "../services/BotServices/NotifyBotService";
 
 export type { AdReferral };
 
@@ -313,6 +314,30 @@ export const handleMessage = async (
     await CreateMessageService({ messageData });
 
     await processVcardMessage(processedMessage);
+
+    // El bot de IA nunca se activa en grupos (ni en contactos sin número real).
+    if (
+      !contextPayload.groupContact &&
+      !contactPayload.isGroup &&
+      !ticket.isGroup &&
+      /^\d{8,15}$/.test(contact.number)
+    ) {
+      NotifyBotService({
+        ticketId: ticket.id,
+        ticketStatus: ticket.status,
+        ticketUserId: ticket.userId ?? null,
+        whatsappId: contextPayload.whatsappId,
+        contact: { number: contact.number, name: contact.name },
+        message: {
+          id: processedMessage.id,
+          body: messageData.body,
+          fromMe: processedMessage.fromMe,
+          mediaType: messageData.mediaType,
+          mediaFile: messageData.mediaUrl,
+          timestamp: processedMessage.timestamp
+        }
+      });
+    }
 
     if (
       !ticket.queue &&

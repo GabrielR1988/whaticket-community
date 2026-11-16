@@ -13,6 +13,7 @@ import quickAnswerRoutes from "./quickAnswerRoutes";
 import apiRoutes from "./apiRoutes";
 import tagRoutes from "./tagRoutes";
 import metaRoutes from "./metaRoutes";
+import botRoutes from "./botRoutes";
 
 const routes = Router();
 
@@ -29,5 +30,6 @@ routes.use(quickAnswerRoutes);
 routes.use("/api/messages", apiRoutes);
 routes.use(tagRoutes);
 routes.use(metaRoutes);
+routes.use(botRoutes);
 
 export default routes;

@@ -9,6 +9,7 @@ import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
 import TicketOptionsMenu from "../TicketOptionsMenu";
 import ButtonWithSpinner from "../ButtonWithSpinner";
+import BotToggle from "../BotToggle";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 
@@ -62,6 +63,7 @@ const TicketActionButtons = ({ ticket }) => {
 
 	return (
 		<div className={classes.actionButtons}>
+			{!ticket.isGroup && <BotToggle ticketId={ticket.id} />}
 			{ticket.status === "closed" && (
 				<ButtonWithSpinner
 					loading={loading}

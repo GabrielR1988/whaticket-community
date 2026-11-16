@@ -1,5 +1,6 @@
 import { addDays, format } from "date-fns";
 import { logger } from "../../utils/logger";
+import Setting from "../../models/Setting";
 
 // Integracion WhaTicket -> EspoCRM (por API REST, con API key de un usuario API de Espo).
 // - Mensaje que contiene la frase de contacto (saludo del bot): crea el Contact.
@@ -24,21 +25,52 @@ const normalize = (text: string): string =>
   text
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
+    .replace(/[*_~]/g, "") // formato de WhatsApp: "me *contacto*" cuenta igual
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
 
-// Varias frases separadas por "|". Basta con que el mensaje CONTENGA alguna;
-// se compara sin mayusculas, tildes ni espacios extra.
+// Varias frases separadas por "|" o por renglón. Basta con que el mensaje CONTENGA alguna;
+// se compara sin mayusculas, tildes, formato ni espacios extra.
 const parsePhrases = (value: string): string[] =>
-  value.split("|").map(normalize).filter(Boolean);
+  value.split(/[|\n]/).map(normalize).filter(Boolean);
 
-const CONTACT_PHRASES = parsePhrases(
-  process.env.ESPO_CONTACT_PHRASES || "Soy Rodrigo Garrido"
-);
-const OPPORTUNITY_PHRASES = parsePhrases(
-  process.env.ESPO_OPPORTUNITY_PHRASES || "me contacto a la brevedad"
-);
+// Las frases se editan en WhaTicket (Configuraciones). Si no se cargaron, se usan las
+// variables de entorno o estos valores por defecto.
+export const CONTACT_PHRASES_SETTING = "espoContactPhrases";
+export const OPPORTUNITY_PHRASES_SETTING = "espoOpportunityPhrases";
+export const DEFAULT_CONTACT_PHRASES =
+  process.env.ESPO_CONTACT_PHRASES || "Soy Rodrigo Garrido";
+export const DEFAULT_OPPORTUNITY_PHRASES =
+  process.env.ESPO_OPPORTUNITY_PHRASES ||
+  "me contacto a la brevedad|te devuelvo la llamada|me comunico a la brevedad|pronto te contactara un integrante";
+
+let phrasesCache: { contact: string[]; opportunity: string[]; until: number } | null =
+  null;
+
+export const clearPhrasesCache = (): void => {
+  phrasesCache = null;
+};
+
+const getPhrases = async (): Promise<{
+  contact: string[];
+  opportunity: string[];
+}> => {
+  if (phrasesCache && phrasesCache.until > Date.now()) return phrasesCache;
+  const rows = await Setting.findAll({
+    where: { key: [CONTACT_PHRASES_SETTING, OPPORTUNITY_PHRASES_SETTING] }
+  });
+  const value = (key: string, fallback: string) =>
+    rows.find(r => r.key === key)?.value?.trim() || fallback;
+  phrasesCache = {
+    contact: parsePhrases(value(CONTACT_PHRASES_SETTING, DEFAULT_CONTACT_PHRASES)),
+    opportunity: parsePhrases(
+      value(OPPORTUNITY_PHRASES_SETTING, DEFAULT_OPPORTUNITY_PHRASES)
+    ),
+    until: Date.now() + 60_000
+  };
+  return phrasesCache;
+};
 
 export const isEspoEnabled = Boolean(ESPO_URL && ESPO_API_KEY);
 
@@ -55,6 +87,9 @@ interface SyncPayload {
   name: string;
   body: string;
   adReferral?: AdReferral;
+  // El bot de IA avisa que derivó o que el cliente quiere contratar: se crea la
+  // oportunidad aunque el mensaje no tenga ninguna frase.
+  forceOpportunity?: boolean;
 }
 
 interface EspoContact {
@@ -222,14 +257,22 @@ const containsPhrase = (body: string, phrases: string[]): boolean => {
 // (con el saludo del bot): se guarda aca hasta entonces.
 const pendingReferrals = new Map<string, AdReferral>();
 
-const sync = async ({ number, name, body, adReferral }: SyncPayload) => {
+const sync = async ({
+  number,
+  name,
+  body,
+  adReferral,
+  forceOpportunity
+}: SyncPayload) => {
   if (adReferral) {
     if (pendingReferrals.size > 5000) pendingReferrals.clear();
     pendingReferrals.set(number, adReferral);
   }
 
-  const isOpportunity = containsPhrase(body, OPPORTUNITY_PHRASES);
-  if (!isOpportunity && !containsPhrase(body, CONTACT_PHRASES)) return;
+  const phrases = await getPhrases();
+  const isOpportunity =
+    forceOpportunity || containsPhrase(body, phrases.opportunity);
+  if (!isOpportunity && !containsPhrase(body, phrases.contact)) return;
 
   const contact = await getOrCreateContact(
     number,
